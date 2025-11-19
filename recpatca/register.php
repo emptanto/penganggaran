@@ -1,13 +1,12 @@
 <?php
 session_start(); // Wajib di baris paling atas
-require_once 'config/db.php'; // Pastikan file koneksi database ini ada
+require_once 'config/db.php';
 
-// === Konfigurasi reCAPTCHA DIHILANGKAN ===
-// $RECAPTCHA_SITE_KEY   = '...';
-// $RECAPTCHA_SECRET_KEY = '...';
+// === reCAPTCHA v2 config ===
+$RECAPTCHA_SITE_KEY   = ''; // site key (punyamu)
+$RECAPTCHA_SECRET_KEY = ''; // <-- GANTI dengan secret key pasangan
 
 // --- BAGIAN KUNCI 1: TENTUKAN SIAPA YANG MENGAKSES ---
-// Diasumsikan ROOT_PATH, header.php, dan footer.php sudah terdefinisi/ada.
 $isAdmin = (isset($_SESSION['role']) && $_SESSION['role'] === 'superadmin');
 
 $errors  = [];
@@ -22,10 +21,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($isAdmin) {
         $role = $_POST['role'] ?? '';
     } else {
-        $role = 'user'; // Pendaftaran mandiri selalu sebagai 'user'
+        $role = 'user';
     }
 
-    // --- reCAPTCHA v2 verification DIHILANGKAN ---
+    // --- reCAPTCHA v2 verification (wajib untuk semua pendaftaran) ---
+    $recaptchaResponse = $_POST['g-recaptcha-response'] ?? '';
+    if ($recaptchaResponse === '') {
+        $errors[] = 'Silakan centang reCAPTCHA.';
+    } else {
+        $verify = @file_get_contents(
+            'https://www.google.com/recaptcha/api/siteverify?secret='
+            . urlencode($RECAPTCHA_SECRET_KEY)
+            . '&response=' . urlencode($recaptchaResponse)
+            . '&remoteip=' . urlencode($_SERVER['REMOTE_ADDR'] ?? '')
+        );
+        $captcha = json_decode($verify ?: '{}', true);
+        if (empty($captcha['success'])) {
+            $errors[] = 'Verifikasi reCAPTCHA gagal. Coba lagi.';
+        }
+    }
 
     // --- Validasi Input ---
     if ($username === '' || $password === '') {
@@ -43,7 +57,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // Hanya lanjut jika tidak ada error
     if (empty($errors)) {
-        // Cek ketersediaan username
         $stmt_check = $conn->prepare("SELECT id FROM users WHERE username = ?");
         $stmt_check->bind_param("s", $username);
         $stmt_check->execute();
@@ -52,7 +65,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($stmt_check->num_rows > 0) {
             $errors[] = 'Username "' . htmlspecialchars($username) . '" sudah digunakan.';
         } else {
-            // Lanjutkan pendaftaran
             $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
             $stmt_insert = $conn->prepare("INSERT INTO users (username, password, role) VALUES (?, ?, ?)");
             $stmt_insert->bind_param("sss", $username, $hashedPassword, $role);
@@ -61,7 +73,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if ($isAdmin) {
                     $success = 'User "' . htmlspecialchars($username) . '" berhasil didaftarkan oleh admin.';
                 } else {
-                    // Pendaftaran mandiri berhasil, redirect ke halaman login
                     $_SESSION['success_message'] = "Pendaftaran berhasil! Silakan login dengan akun baru Anda.";
                     header("Location: index.php");
                     exit;
@@ -74,36 +85,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt_check->close();
     }
 }
-
-$conn->close();
 ?>
 
-<?php 
-// Perbaikan: Asumsi file header dan footer ada, namun karena tidak ada path lengkapnya, 
-// saya menggunakan placeholder atau menganggapnya sudah didefinisikan secara global.
-// Pastikan Anda menyesuaikan path ini di implementasi Anda.
+<?php include_once ROOT_PATH .  '/views/layouts/header.php'; ?>
 
-// Jika Anda tidak menggunakan file eksternal:
-// echo '<!DOCTYPE html><html><head>...</head><body>';
-
-// Jika Anda menggunakan file eksternal seperti yang ada di kode asli:
-// if (defined('ROOT_PATH')) {
-//     include_once ROOT_PATH .  '/views/layouts/header.php';
-// } else {
-    // Sebagai fallback, jika tidak ada header.php yang disertakan
-?>
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= $isAdmin ? 'Register User Baru (Admin)' : 'Pendaftaran Akun' ?></title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
-<body>
-<?php
-// } // Akhir fallback
-?>
+<!-- muat script reCAPTCHA v2 -->
+<script src="https://www.google.com/recaptcha/api.js" async defer></script>
 
 <div class="container mt-4">
     <div class="row justify-content-center">
@@ -157,6 +144,11 @@ $conn->close();
                         </div>
                     <?php endif; ?>
 
+                    <!-- Widget reCAPTCHA v2 -->
+                    <div class="mb-3">
+                        <div class="g-recaptcha" data-sitekey="<?= htmlspecialchars($RECAPTCHA_SITE_KEY) ?>"></div>
+                    </div>
+                    
                     <div class="d-grid">
                         <button type="submit" class="btn btn-primary">
                             <?= $isAdmin ? 'Daftarkan User' : 'Daftar' ?>
@@ -174,18 +166,4 @@ $conn->close();
     </div>
 </div>
 
-<?php 
-// Jika Anda tidak menggunakan file eksternal:
-// echo '</body></html>';
-
-// Jika Anda menggunakan file eksternal seperti yang ada di kode asli:
-// if (defined('ROOT_PATH')) {
-//     include_once ROOT_PATH .  '/views/layouts/footer.php';
-// } else {
-    // Sebagai fallback, jika tidak ada footer.php yang disertakan
-?>
-</body>
-</html>
-<?php
-// } // Akhir fallback
-?>
+<?php include_once ROOT_PATH .  '/views/layouts/footer.php'; ?>
