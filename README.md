@@ -1,0 +1,1 @@
+Aplikasi pengangaran adalah aplikasi yang kami rancang untuk memudahkan sekolah untuk membuat perencanaan anggaran sekolah. Yang meliputi penganggaran kegiatan selama satu tahun. Kami membuat ini berdasarkan pengalaman di sekolah dan kebutuhan untuk input data di aplikasi RKAS. Aplikasi ini terbuka dan boleh didownload dan dimodifikasi.
