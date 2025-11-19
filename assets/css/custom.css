@@ -1,0 +1,105 @@
+/* File: assets/css/custom.css (Versi Bersih) */
+
+/* Perbaikan untuk tinggi dropdown Choices.js agar sesuai dengan Bootstrap */
+
+.choices__inner {
+    min-height: 38px; /* Standar tinggi Bootstrap .form-control */
+    padding: .375rem .75rem; /* Padding standar Bootstrap */
+    background-color: #fff;
+    border: 1px solid #ced4da;
+    border-radius: 0.375rem; /* Sudut melengkung standar Bootstrap */
+}
+
+.choices__list--single {
+    padding: 0;
+}
+
+.choices[data-type*="select-one"]::after {
+    right: 1.5em; /* Posisikan panah dropdown sedikit ke kiri */
+}
+
+
+/* Gaya untuk header tabel yang bisa disortir */
+.table thead th {
+    vertical-align: middle;
+}
+
+.table thead th a {
+    color: inherit;
+    text-decoration: none;
+}
+
+.table thead th a:hover {
+    color: #0d6efd;
+}
+
+/* Gaya untuk menu navigasi */
+.navbar-nav .nav-link:hover {
+    background-color: #e9ecef;
+    border-radius: 0.25rem;
+    transition: background-color 0.3s ease;
+}
+
+/* Gaya untuk kartu statistik di dashboard */
+.stat-card {
+    transition: transform 0.2s;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+}
+
+.select2-hidden-accessible{ display:none !important; 
+}
+
+
+    /* CSS FINAL DAN LENGKAP UNTUK SELECT2 + BOOTSTRAP 5 */
+
+    /* 1. Atur lebar agar selalu 100% dari kolomnya */
+    .select2-container {
+        width: 100% !important;
+        box-sizing: border-box;
+    }
+
+    /* 2. Atur box utama agar sesuai dengan .form-control Bootstrap */
+    .select2-container--default .select2-selection--single {
+        height: auto !important; /* Izinkan tinggi untuk bertambah jika teks wrap */
+        min-height: 38px;        /* TAPI, tinggi minimalnya harus 38px */
+        border: 1px solid #ced4da;
+        border-radius: .375rem;
+        
+        /* Kunci untuk perataan vertikal */
+        display: flex;
+        align-items: center;
+    }
+
+    /* 3. Atur teks yang dipilih (dan placeholder) */
+    .select2-container--default .select2-selection--single .select2-selection__rendered {
+        white-space: normal !important; /* Izinkan teks untuk pindah baris (wrap) */
+        line-height: 1.5 !important;
+        padding-left: 0.75rem !important; /* Sesuaikan padding kiri */
+        color: #212529;
+    }
+
+    /* 4. Atur posisi panah dropdown */
+    .select2-container--default .select2-selection--single .select2-selection__arrow {
+        height: 100%;
+        position: absolute;
+        top: 0;
+        right: 0.75rem;
+        display: flex;
+        align-items: center;
+    }
+
+    /* 5. Atur style saat dropdown di-klik (efek "glow" biru) */
+    .select2-container--default.select2-container--open .select2-selection--single,
+    .select2-container--default.select2-container--focus .select2-selection--single {
+        border-color: #86b7fe;
+        box-shadow: 0 0 0 .25rem rgba(13, 110, 253, .25);
+    }
+    
+    .select2-dropdown {
+        border-color: #86b7fe;
+        border-radius: .375rem;
+    }
+
